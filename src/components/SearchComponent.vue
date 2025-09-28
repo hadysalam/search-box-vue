@@ -11,8 +11,8 @@
     </div>
     
     <div v-for="article in filteredArticles" :key="article.id">
-      <h3>{{ article.title }}</h3>
-      <p>{{ article.content }}</p>
+      <h3 v-html="highlightText(article.title)"></h3>
+      <p v-html="highlightText(article.content)"></p>
     </div>
   </div>
 </template>
@@ -32,9 +32,7 @@ export default defineComponent({
       if (debounceTimer) {
         window.clearTimeout(debounceTimer);
       }
-      debounceTimer = window.setTimeout(() => {
-        // Computed property will auto-update
-      }, DEBOUNCE_DELAY);
+      debounceTimer = window.setTimeout(() => {}, DEBOUNCE_DELAY);
     };
 
     const filteredArticles = computed(() => {
@@ -47,11 +45,30 @@ export default defineComponent({
       );
     });
 
+    const highlightText = (text: string): string => {
+      if (!searchQuery.value.trim()) return text;
+      
+      // Escape special regex characters
+      const escapedQuery = searchQuery.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(${escapedQuery})`, 'gi');
+      return text.replace(regex, '<mark class="search-highlight">$1</mark>');
+    };
+
     return {
       searchQuery,
       filteredArticles,
-      debounceSearch
+      debounceSearch,
+      highlightText
     };
   }
 });
 </script>
+
+<style scoped>
+.search-highlight {
+  background-color: yellow;
+  color: black;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+</style>
